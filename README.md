@@ -4,6 +4,8 @@ OCRDesk Web turns PNG and JPEG images and PDF documents into text with OCR, enti
 
 It is a static website with no build step and no server-side code.
 
+**Try it:** <https://ytmknd.github.io/OCRDeskWeb/>
+
 ## Features
 
 - Add PNG, JPEG, and PDF files by drag and drop or with a file picker. Several files can be processed at once.
