@@ -1,0 +1,5 @@
+# Netlify / Cloudflare Pages: enable cross-origin isolation so that OCR can use multiple threads.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-origin

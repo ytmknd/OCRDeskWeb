@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OCRDesk Web</title>
+  <meta name="description" content="OCR for PNG, JPEG, and PDF files that runs entirely in your browser. Files are never uploaded.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="src/styles.css">
+  <script>
+    // 複数スレッドで OCR するためにクロスオリジン分離を有効にする（sw.js がヘッダーを付ける）。
+    // 初回はサービスワーカーの登録後に 1 度だけ再読み込みする。
+    (function () {
+      if (window.crossOriginIsolated || !window.isSecureContext || !('serviceWorker' in navigator)) return;
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        var reloaded = false;
+        try { reloaded = sessionStorage.getItem('ocrdeskweb.coi') === '1'; } catch (e) {}
+        if (reloaded) return;
+        var reload = function () { try { sessionStorage.setItem('ocrdeskweb.coi', '1'); } catch (e) {} location.reload(); };
+        if (navigator.serviceWorker.controller) reload();
+        else navigator.serviceWorker.addEventListener('controllerchange', reload);
+      }).catch(function () { /* 登録できなくても 1 スレッドで動く */ });
+    })();
+  </script>
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="28" height="28">
+      <div>
+        <h1>OCRDesk Web</h1>
+        <p class="tagline" data-i18n="tagline"></p>
+      </div>
+    </div>
+    <p class="privacy"><span aria-hidden="true">🔒</span> <span data-i18n="privacy"></span></p>
+  </header>
+
+  <div class="toolbar" role="toolbar">
+    <button id="runBtn" class="primary" disabled data-i18n="run"></button>
+    <button id="cancelBtn" disabled data-i18n="cancel"></button>
+    <span class="sep" aria-hidden="true"></span>
+    <label class="field">
+      <span data-i18n="engine"></span>
+      <select id="backendSelect">
+        <option value="wasm" data-i18n="engineCpu"></option>
+        <option value="webgpu" data-i18n="engineGpu"></option>
+      </select>
+    </label>
+    <label class="field">
+      <span data-i18n="pdfResolution"></span>
+      <select id="dpiSelect">
+        <option value="150">150 dpi</option>
+        <option value="200" selected>200 dpi</option>
+        <option value="300">300 dpi</option>
+      </select>
+    </label>
+    <span class="spacer"></span>
+    <button id="copyBtn" disabled data-i18n="copy"></button>
+    <button id="saveBtn" disabled data-i18n="save"></button>
+  </div>
+
+  <main class="layout">
+    <section class="panel files">
+      <div class="panel-head">
+        <h2 data-i18n="files"></h2>
+        <div class="actions">
+          <button id="removeBtn" class="small" disabled data-i18n="remove"></button>
+          <button id="clearBtn" class="small" disabled data-i18n="clearAll"></button>
+        </div>
+      </div>
+      <label id="drop" class="drop">
+        <input id="fileInput" type="file" accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf" multiple>
+        <span class="drop-title" data-i18n="dropHere"></span>
+        <span class="drop-sub"><span data-i18n="orChoose"></span> <span class="link" data-i18n="chooseFiles"></span></span>
+      </label>
+      <p id="emptyList" class="muted" data-i18n="noFiles"></p>
+      <ul id="fileList" class="file-list" role="listbox"></ul>
+    </section>
+
+    <section class="panel preview">
+      <div class="panel-head">
+        <h2 data-i18n="preview"></h2>
+        <div class="pager">
+          <button id="prevPage" class="small icon" disabled data-i18n-title="prevPage" aria-label="Previous">◀</button>
+          <span id="pageLabel" class="muted"></span>
+          <button id="nextPage" class="small icon" disabled data-i18n-title="nextPage" aria-label="Next">▶</button>
+        </div>
+      </div>
+      <div class="preview-box">
+        <img id="previewImg" alt="" hidden>
+        <canvas id="previewCanvas" hidden></canvas>
+        <p id="previewEmpty" class="muted">—</p>
+      </div>
+    </section>
+
+    <section class="panel result">
+      <div class="panel-head"><h2 data-i18n="result"></h2></div>
+      <textarea id="result" spellcheck="false" autocomplete="off"></textarea>
+    </section>
+  </main>
+
+  <footer class="status-bar">
+    <span id="status" role="status" aria-live="polite"></span>
+    <progress id="progress" max="1" value="0" hidden></progress>
+  </footer>
+  <footer class="about">
+    <p class="muted"><span data-i18n="engineNote"></span> <a href="THIRD-PARTY-NOTICES.md" data-i18n="licenses"></a></p>
+  </footer>
+</body>
+</html>
